@@ -1,6 +1,5 @@
 # TLFHost - Specialized Billing & Support System
 
-A semi-managed billing and ticketing environment customized for high-privacy OVH and ColoCrossing server deployments.
 
 ## Tech Stack
 - PHP (OOP / PDO)
