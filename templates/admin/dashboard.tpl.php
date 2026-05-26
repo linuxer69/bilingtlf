@@ -1,4 +1,3 @@
-<!-- templates/admin/dashboard.tpl.php -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,12 +26,17 @@
         
         /* Admin Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-bottom: 40px; }
-        .stat-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.01); }
+        .stat-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; box-shadow: 0 1px 3px rgba(0,0,0,0.01); text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; }
         .stat-card .stat-label { font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
         .stat-card .stat-value { font-size: 28px; font-weight: 700; color: #0f172a; margin-top: 8px; }
-        .stat-card.alert-card { border-top: 4px solid #ef4444; }
         
-        /* Content Section */
+        .stat-card.alert-card { border-top: 4px solid #ef4444; cursor: pointer; }
+        .stat-card.alert-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1); background: #fffdfd; }
+        .stat-card.alert-card .stat-label { color: #b91c1c; }
+        
+        /* Two Column Layout for Widgets */
+        .two-col-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start; }
+        
         .dashboard-section { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); overflow: hidden; }
         .section-header { padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
         .section-header h2 { font-size: 16px; font-weight: 600; color: #0f172a; }
@@ -45,12 +49,18 @@
         td { padding: 16px 24px; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; }
         tr:last-child td { border-bottom: none; }
         
-        /* Badges for Admin View */
         .badge { display: inline-block; padding: 4px 8px; font-size: 12px; font-weight: 500; border-radius: 9999px; text-transform: capitalize; }
         .status-open { background-color: #fef2f2; color: #991b1b; }
-        .status-answered { background-color: #e0f2fe; color: #0369a1; }
         .status-customer-reply { background-color: #fef9c3; color: #a16207; }
-        .status-closed { background-color: #f1f5f9; color: #475569; }
+
+        /* User Login Activity Sidebar Widget List */
+        .login-list { padding: 8px 16px; list-style: none; }
+        .login-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 8px; border-bottom: 1px solid #f1f5f9; }
+        .login-item:last-child { border-bottom: none; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar-placeholder { width: 32px; height: 32px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #475569; }
+        .username-text { font-size: 14px; font-weight: 500; color: #1e293b; }
+        .time-text { font-size: 12px; color: #64748b; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -69,60 +79,87 @@
         <p>System infrastructure overview and business metrics monitoring center.</p>
     </div>
 
-    <!-- Metrics Cards Container -->
     <div class="stats-grid">
         <div class="stat-card">
             <span class="stat-label">Total Clients</span>
             <span class="stat-value"><?php echo $total_users; ?></span>
         </div>
-        <div class="stat-card <?php echo $pending_tickets > 0 ? 'alert-card' : ''; ?>">
+        
+        <a href="tickets.php" class="stat-card alert-card">
             <span class="stat-label">Tickets Awaiting Action</span>
             <span class="stat-value"><?php echo $pending_tickets; ?></span>
-        </div>
+        </a>
+        
         <div class="stat-card">
             <span class="stat-label">Active Deployments</span>
             <span class="stat-value"><?php echo $total_services; ?></span>
         </div>
     </div>
 
-    <!-- Urgent Tickets Overview Box -->
-    <div class="dashboard-section">
-        <div class="section-header">
-            <h2>Recent Support Activity</h2>
-            <a href="tickets.php" class="btn-text">Manage All Tickets</a>
-        </div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Ticket ID</th>
-                    <th>Client</th>
-                    <th>Subject</th>
-                    <th>Status</th>
-                    <th>Last Update</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($recent_tickets)): ?>
+    <div class="two-col-layout">
+        
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>Active Support Queue</h2>
+                <a href="tickets.php" class="btn-text">Manage All Tickets</a>
+            </div>
+            <table>
+                <thead>
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 24px;">No recent support tickets in queue.</td>
+                        <th>Ticket ID</th>
+                        <th>Client</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Last Update</th>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($recent_tickets as $ticket): ?>
+                </thead>
+                <tbody>
+                    <?php if (empty($recent_tickets)): ?>
                         <tr>
-                            <td>#<?php echo htmlspecialchars($ticket['id'], ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td style="font-weight: 500; color: #0f172a;"><?php echo htmlspecialchars($ticket['username'] ?? 'System Account', ENT_QUOTES, 'UTF-8'); ?></td>
-                            <td><a href="ticket-view.php?id=<?php echo $ticket['id']; ?>" style="color: #3b82f6; text-decoration: none; font-weight: 500;"><?php echo htmlspecialchars($ticket['subject'], ENT_QUOTES, 'UTF-8'); ?></a></td>
-                            <td>
-                                <span class="badge status-<?php echo $ticket['status']; ?>">
-                                    <?php echo htmlspecialchars($ticket['status'], ENT_QUOTES, 'UTF-8'); ?>
-                                </span>
-                            </td>
-                            <td><?php echo htmlspecialchars($ticket['updated_at'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            <td colspan="5" style="text-align: center; color: #94a3b8; padding: 24px;">No active support tickets in queue.</td>
                         </tr>
+                    <?php else: ?>
+                        <?php foreach ($recent_tickets as $ticket): ?>
+                            <tr>
+                                <td>#<?php echo htmlspecialchars($ticket['id'], ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td style="font-weight: 500; color: #0f172a;"><?php echo htmlspecialchars($ticket['username'] ?? 'System Account', ENT_QUOTES, 'UTF-8'); ?></td>
+                                <td><a href="ticket-view.php?id=<?php echo $ticket['id']; ?>" style="color: #3b82f6; text-decoration: none; font-weight: 500;"><?php echo htmlspecialchars($ticket['subject'], ENT_QUOTES, 'UTF-8'); ?></a></td>
+                                <td>
+                                    <span class="badge status-<?php echo $ticket['status']; ?>">
+                                        <?php echo str_replace('-', ' ', $ticket['status']); ?>
+                                    </span>
+                                </td>
+                                <td><?php echo htmlspecialchars($ticket['updated_at'], ENT_QUOTES, 'UTF-8'); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2>Recent Logins</h2>
+            </div>
+            <ul class="login-list">
+                <?php if (empty($recent_logins)): ?>
+                    <li style="text-align: center; color: #94a3b8; padding: 16px; font-size: 14px;">No user activity recorded yet.</li>
+                <?php else: ?>
+                    <?php foreach ($recent_logins as $loginUser): ?>
+                        <li class="login-item">
+                            <div class="user-info">
+                                <div class="user-avatar-placeholder">
+                                    <?php echo strtoupper(substr($loginUser['username'], 0, 2)); ?>
+                                </div>
+                                <span class="username-text"><?php echo htmlspecialchars($loginUser['username'], ENT_QUOTES, 'UTF-8'); ?></span>
+                            </div>
+                            <span class="time-text"><?php echo timeAgo($loginUser['last_login']); ?></span>
+                        </li>
                     <?php endforeach; ?>
                 <?php endif; ?>
-            </tbody>
-        </table>
+            </ul>
+        </div>
+
     </div>
 </div>
 

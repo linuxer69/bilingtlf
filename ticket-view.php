@@ -4,8 +4,9 @@
 session_start();
 require_once __DIR__ . '/config/db.php';
 
+// FIX: If not logged in, redirect to index.php (instead of login.php)
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 

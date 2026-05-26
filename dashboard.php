@@ -4,9 +4,9 @@
 session_start();
 require_once __DIR__ . '/config/db.php';
 
-// Check user authentication
+// Check user authentication using the compatible key
 if (!isset($_SESSION['user_logged_in']) || $_SESSION['user_logged_in'] !== true) {
-    header("Location: login.php");
+    header("Location: index.php");
     exit;
 }
 
